@@ -86,6 +86,12 @@ public class PlayerMovement : MonoBehaviour
         
         #region bool control
         doJump |= (jumpAction.GetButtonDown() && jumpCount > 0 && !jumping); //We use |= because we want doJump to be set from true to false
+        //This ^ Operator is the or equals operator, it's kind of hard to explain so hopefully I explain this correctly,
+        //Basically its saying this : doJump = doJump || (jumpAction.GetButtonDown() && jumpCount > 0 && !jumping)
+        //Which is too say, if doJump is already true we return true otherwise we check (jumpAction.GetButtonDown() && jumpCount > 0 && !jumping)
+        //The reason we do this is because the only time we want doJump = false is when we directly set it later in the code after we
+        //call the jump function. So unless we are setting doJump to false it will be able to return true and only check our conditional
+        //again once it is set to false.
         //in the event that doJump is already false and our conditional returns true;
         if (isGrounded)
         {
