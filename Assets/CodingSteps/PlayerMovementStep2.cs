@@ -1,92 +1,78 @@
-using Microsoft.Cci;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovementStep2 : MonoBehaviour
 {
+    #region step 1
+    [Header("Assigned Parameters")]
+    public GameObject cam; 
 
-    #region Step 1
-
-    //Step 1 : Create variables for referencing our players components
-    private PlayerInput input; //this is private because we assign it in code
-    private Rigidbody2D rb; //this is private because we assign it in code
-    public GameObject cam; //this is public because we assign it manually
-
-    //Step 1 : Create Input Actions 
-    private InputAction jumpAction; //Probs actually step 2
-    private InputAction moveAction;
-
-    //Step 1 : create isGrounded variables
-    public float groundCheckDist = 0.1f; //Probs actually Step 2
-    //Step 1
-
-    //Step 1 : Create configurable variables
-    [Header("Movement Parameters")] //Explain that this will show a header in the inspector to categorize variables
-    [Range(1, 20)] public float moveSpeed = 12f; //Say that this variable is for modifying our movement vector to actually create speed.
+    [Header("Movement Parameters")] 
+    [Range(1, 20)] public float moveSpeed = 12f; 
     [Range(1, 20)] public float maxSpeed = 14f;
-    [Range(1, 10)] public float maxDecelSpeed = 5f; //When you let go of the controls clamp speed to this value. Probs step 2
+    [Range(1, 10)] public float maxDecelSpeed = 5f; //When you let go of the controls clamp speed to this value. Added step 7
 
-    private Vector2 moveDirection; //Step 1 : our move direction vector
-    private Vector2 currentInput; //Step 1 : our input vector
+    [Header("Jump Parameters")] //vars Added for step 2
+    public float groundCheckDist = 0.1f;
+    [SerializeField] private int jumpCount = 1; //What we modify and check when jumping.
+    public int jumpTotal = 1; //Total jumps, so for instance if you wanted 3 jumps set this to 3.
+    [SerializeField] private bool jumpCanceled;
+    [SerializeField] private bool jumping;
+    public float jumpHeight = 5f; //Our jump height to reach.
+    [SerializeField] private float buttonTime;
+    [SerializeField] private float jumpTime;
+    public float fallMultiplier = 2.5f; //When you reach the peak of the expected arc this is the force applied to make falling more fluid.
+    public float lowJumpMultiplier = 2f; //When you stop holding jump to do a low jump this is the force applied to make the jump stop short.
+    public float Multiplier = 100f; //This is so we can scale with deltatime properly.
+
+    private PlayerInput input; 
+    private Rigidbody2D rb; 
+
+
+    private InputAction moveAction;
+    private InputAction jumpAction; //ADDED FOR STEP 2
+
+
+    private Vector2 moveDirection; 
+    private Vector2 currentInput;
+
 
     #endregion
 
-    #region Step 2
-
+    #region step 2
+    private LayerMask rCasting;
     public bool isGrounded => Physics2D.BoxCast(transform.position, this.GetComponent<BoxCollider2D>().size, 0f, -transform.up, groundCheckDist, rCasting);
     public bool inAir => !jumping && !isGrounded;
     public bool doJump;
 
     
-
     
-
-    private LayerMask rCasting;
-
-    [Header("Jumping Parameters")]
-    [SerializeField] private int jumpCount = 1; //What we modify and check when jumping.
-    public int jumpTotal = 1; //Total jumps, so for instance if you wanted 3 jumps set this to 3.
-    [SerializeField] private bool jumpCanceled;
-    [SerializeField] private bool jumping;
-    public float jumpHeight = 5f; //Our jump height, set this to a specific value and our player will reach that height with a maximum deviation of 0.1
-    [SerializeField] private float buttonTime;
-    [SerializeField] private float jumpTime;
-    public float jumpDist; //This is not in the actual tutorial because I only used it for testing the distance of the actual jump.
-    public Vector2 ogJump; //Not included just like what I said above.
-    public float fallMultiplier = 2.5f; //When you reach the peak of the expected arc this is the force applied to make falling more fluid.
-    public float lowJumpMultiplier = 2f; //When you stop holding jump to do a low jump this is the force applied to make the jump stop short.
-    public float Multiplier = 100f; //This is so we can scale with deltatime properly.
 
     #endregion
 
+    #region step 3
     // Start is called before the first frame update
     void Start()
     {
-        #region Step 1
-        input = GetComponent<PlayerInput>(); //Assign input component
-        rb = GetComponent<Rigidbody2D>(); //Assign rigidbody component
-        moveAction = input.actions["Move"]; //Assign moveAction to our Move action in our player input actions.
+        input = GetComponent<PlayerInput>(); //Assign input component attatched to the gameObject this script is attatched to
+        rb = GetComponent<Rigidbody2D>(); //Assign rigidbody component like above
+        moveAction = input.actions["Move"]; //Assign moveAction to our Move action in our player input actions, name is case sensitive.
+                                            
 
-
-        #endregion
-
-        #region Step 2
+        //Additions.
         jumpAction = input.actions["Jump"]; //Assign jump action
         rCasting = LayerMask.GetMask("Player"); //Assign our layer mask to player
         rCasting = ~rCasting; //Invert the layermask value so instead of being just the player it becomes every layer but the mask
-        #endregion
     }
+    #endregion
 
+    #region step 4
     // Update is called once per frame
     void Update()
     {
-
-        #region Step 2
-        
-        #region bool control
+        #region bool control //Additions
         doJump |= (jumpAction.GetButtonDown() && jumpCount > 0 && !jumping); //We use |= because we want doJump to be set from true to false
         //This ^ Operator is the or equals operator, it's kind of hard to explain so hopefully I explain this correctly,
         //Basically its saying this : doJump = doJump || (jumpAction.GetButtonDown() && jumpCount > 0 && !jumping)
@@ -120,7 +106,6 @@ public class PlayerMovement : MonoBehaviour
             if (jumpTime >= buttonTime) //When we reach our projected time stop jumping and begin falling.
             {
                 jumpCanceled = true;
-                jumpDist = Vector2.Distance(transform.position, ogJump); //Not needed, just calculates distance from where we started jumping to our highest point in the jump.
             }
         }
 
@@ -131,27 +116,20 @@ public class PlayerMovement : MonoBehaviour
 
         #endregion
 
-        #endregion
-
-        #region Step 1
         HandleMovementInput();
-        #endregion
-        
     }
+    #endregion
 
+    #region step 6
     private void FixedUpdate()
     {
-        #region Step 2
-        HandleJump();
-        #endregion
+        HandleJump(); //Added
 
-        #region Step 1
         ApplyFinalMovements(); //Explain that applying force to a rigidbody can only occur in a fixed update because fixed update is the physics step.
-        #endregion
-
-        
     }
+    #endregion
 
+    
     private void HandleMovementInput() //Step 1
     {
         //Explain that this vector2 is based off of our moveAction, For each key depending on what is pressed we get a value from 0-1 W is positive, S negative, A negative, D positive.
@@ -161,21 +139,21 @@ public class PlayerMovement : MonoBehaviour
 
         currentInput.y = 0; //Explain that we set the y velocity this way because otherwise the player would be able to just fly up or down by pressing up or down.
         moveDirection = ((currentInput.x * cam.transform.right.normalized) + (currentInput.y * cam.transform.up.normalized)) * moveSpeed; //This binds our controls to the characters right and forward directions so when we rotate control remains the same.
-        // ^ Dot product formula, I explain why we have to write it here in the presentation but I will say it again, Unity's dot product returns a float not a vector of one vector projected onto another. 
+
     }
 
+    #region step 5
     private void HandleJump() //Step 2
     {
-        
+
 
         if (doJump)
         {
             doJump = false;
             jumpCount--;
-            ogJump = transform.position;
             float jumpForce;
 
-            jumpForce = Mathf.Sqrt(2f * Physics2D.gravity.magnitude * jumpHeight) * rb.mass; 
+            jumpForce = Mathf.Sqrt(2f * Physics2D.gravity.magnitude * jumpHeight) * rb.mass;
             buttonTime = (jumpForce / (rb.mass * Physics2D.gravity.magnitude)); //initial velocity divided by player accel for gravity gives us the amount of time it will take to reach the apex.
             rb.velocity = new Vector2(rb.velocity.x, 0); //Reset y velocity before we jump so it is always reaching desired height.
             rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse); //don't normalize transform.up cus it makes jumping more inconsistent.
@@ -199,11 +177,16 @@ public class PlayerMovement : MonoBehaviour
             rb.AddForce(jumpVec, ForceMode2D.Force);
         }
     }
+    #endregion
 
+
+    #region step 7
     private void ApplyFinalMovements() //Step 1
     {
-
+        //Add our input based move direction to our players rigidbody as a force
         rb.AddForce(moveDirection, ForceMode2D.Force);
+        //Clamp player velocity to our max speed.
+        // REPLEACE : rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -maxSpeed, maxSpeed), rb.velocity.y); WITH BELOW
         if (currentInput.x != 0) //What this does is when we stop giving input (when the player tries to stop moving) we Decel in a specific 
         {                        //range by setting velocity to our max Decel speed so it slows down to 0 from that value.
             rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -maxSpeed, maxSpeed), rb.velocity.y);
@@ -213,4 +196,5 @@ public class PlayerMovement : MonoBehaviour
             rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -maxDecelSpeed, maxDecelSpeed), rb.velocity.y);
         }
     }
+    #endregion
 }

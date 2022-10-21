@@ -484,6 +484,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 748210743}
+  - component: {fileID: 748210748}
   - component: {fileID: 748210745}
   - component: {fileID: 748210746}
   - component: {fileID: 748210742}
@@ -600,7 +601,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 748210740}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6fdfdef8c93d4344c90606a2caf5abb9, type: 3}
   m_Name: 
@@ -670,6 +671,34 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &748210748
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 748210740}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b6798ad584542e4d959019ef1de466e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cam: {fileID: 519420028}
+  moveSpeed: 12
+  maxSpeed: 14
+  maxDecelSpeed: 5
+  groundCheckDist: 0.1
+  jumpCount: 1
+  jumpTotal: 1
+  jumpCanceled: 0
+  jumping: 0
+  jumpHeight: 5
+  buttonTime: 0
+  jumpTime: 0
+  fallMultiplier: 9
+  lowJumpMultiplier: 15
+  Multiplier: 100
+  doJump: 0
 --- !u!1 &1586082694
 GameObject:
   m_ObjectHideFlags: 0
